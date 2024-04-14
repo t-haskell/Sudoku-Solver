@@ -70,8 +70,8 @@ def revise(input_csp, cell1, cell2):
         found_valid = False
         # Checking the values in cell 2's domain
         for value2 in input_csp[cell2]:
-            if [value1, value2] in input_csp[(cell1, cell2)] or [value2, value1] not in input_csp[(cell1, cell2)]:
-                # If values are in constraints, proving validity,
+            if [value1, value2] in input_csp.get((cell1, cell2), []) or [value2, value1] in input_csp.get((cell1, cell2), []):
+                # If values are in constraints, proving validity, 
                 # then we have found a valid value pair between cell1 and cell2
                 found_valid = True
             if found_valid is False:
