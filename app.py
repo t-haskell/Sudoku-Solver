@@ -74,9 +74,9 @@ def revise(input_csp, cell1, cell2):
                 # If values are in constraints, proving validity,
                 # then we have found a valid value pair between cell1 and cell2
                 found_valid = True
-        if found_valid is False:
-            # If no valid value pair, then cell1's value is removed from its domain
-            input_csp[cell1].remove(value1)
+            if found_valid is False:
+                # If no valid value pair, then cell1's value is removed from its domain
+                input_csp[cell1].remove(value1)
             changeMade = True
     return changeMade
     
