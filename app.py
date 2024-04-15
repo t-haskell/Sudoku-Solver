@@ -64,6 +64,17 @@ constraint4x4 = {
 ## PART 2 - Creating the REVISE function 
 
 def revise(input_csp, cell1, cell2):
+    '''
+    Revises the domain of a given cell in a constraint satisfaction problem (CSP) based on the constraints with another cell.
+
+    Args:
+        input_csp (dict): The CSP to be revised, where the keys are cell names and the values are lists of possible values for that cell.
+        cell1 (str): The name of the cell whose domain should be revised.
+        cell2 (str): The name of the cell whose constraints should be used to revise the domain of cell1.
+
+    Returns:
+        bool: True if the domain of cell1 was changed, False otherwise.
+    '''
     # Boolean value to return, indicates if changes were made
     changeMade = False
     for value1 in input_csp[cell1]:
@@ -77,7 +88,7 @@ def revise(input_csp, cell1, cell2):
             if found_valid is False:
                 # If no valid value pair, then cell1's value is removed from its domain
                 input_csp[cell1].remove(value1)
-            changeMade = True
+                changeMade = True
     return changeMade
     
 
