@@ -92,6 +92,38 @@ def revise(input_csp, cell1, cell2):
     return changeMade
     
 
+## Part 3 - Implementing AC-3 function, modifies a CSP removing all inconsistent domain values
+
+def ac3(input_csp):
+    '''
+    Utilizing the revise function to modify a CSP object and ensures all variables are consistent
+    with the constraints given.
+    
+    Args:
+        input_csp (dict): The CSP to be revised, where the keys are cell names and the values are lists of possible values for that cell.
+    
+    Returns:
+        bool: True if all variables still have at least one value in their domains, False otherwise
+    '''
+    # 4x Nested loop allows for every pair of cells to be considered, using the revise function to fix CSP
+    for row1 in range(0, 10):
+        for col1 in range(0, 10):
+            for row2 in range(row1+1, 10):
+                for col2 in range(0, 10):
+                    # This nested loop will allow for every pair of cells on 9x9 board
+                    revise(input_csp, 'C' + str(row1) + str(col1), 'C' + str(row2) + str(col2))
+                    
+    if [] in input_csp[:9]:
+        return False
+    return True
+                    
+                    
+def csp_to_sudoku_board(csp):
+    board = [[csp['C' + str(i) + str(j)] for j in range(1, 10)] for i in range(1, 10)]
+    return board
+        
+    
+    
 
 @app.route('/')
 def home():
