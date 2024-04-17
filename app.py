@@ -85,7 +85,6 @@ def revise(input_csp, cell1, cell2):
     '''
     # Boolean value to return, indicates if changes were made
     revised = False
-    print(cell1)
     for value1 in input_csp[0].get(cell1, []):
         found_valid = False
         # Checking the values in cell 2's domain 
@@ -183,11 +182,6 @@ def ac3(input_csp):
             for neighbor in neighbors:
                 queue.append([neighbor, cell_pair[0]])
     return True
-        
-    
-def csp_to_sudoku_board(csp):
-    board = [[csp['C' + str(i) + str(j)] for j in range(1, 10)] for i in range(1, 10)]
-    return board
         
     
     
