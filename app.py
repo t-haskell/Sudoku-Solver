@@ -1,7 +1,15 @@
-from flask import Flask
+from flask import Flask, render_template
+import csp9x9
+
+# CSP for a blank 9x9 Sudoku board
+blank_csp = [csp9x9.variables9x9, csp9x9.constraint9x9]
+# CSP for Puzzle 1
+puzzle1 = [csp9x9.puzzle1var, csp9x9.constraint9x9]
+
+
 app = Flask(__name__)
 
-## PART 1 - 4x4 Constraints
+## PART 1 - 4x4 Constraints/CSP -----------------------------------------------------------------------
 constraint4x4 = [
     # Variables
     {'C11': [1], 'C12': [1, 2, 3, 4], 'C13': [1, 2, 3, 4], 'C14': [1, 2, 3, 4],
@@ -61,7 +69,7 @@ constraint4x4 = [
 ]
 
 
-## PART 2 - Creating the REVISE function 
+## PART 2 - Creating the REVISE function ---------------------------------------------------------
 
 def revise(input_csp, cell1, cell2):
     '''
@@ -99,7 +107,53 @@ def revise(input_csp, cell1, cell2):
     return revised
     
 
-## Part 3 - Implementing AC-3 function, modifies a CSP removing all inconsistent domain values
+## Part 3 - Implementing AC-3 function, with its helper function for finding 'neighbors'
+
+def get_neighbors(cell, csp):
+    '''
+    Helper function for the AC-3 algorithm, finds a list of the cells that are in the same row,
+    column, and sub-box as the given cell.
+    
+    Args:
+        cell (str): The name of the cell
+        csp (list): Contains two dictionaries, one for the variables/domains and the other for contraints
+    
+    Returns:
+        neighbors (list): List of names of cells that are 'neighbors' of the given cell
+    '''
+    neighbors = []
+    # Not going to worry about adding the cell itself, will remove at the end
+    # Add row neighbors
+    for r in range(9):
+        # Appending each cell by incrmenting the last character of the cell name
+        neighbors.append('C' + cell[1] + str(r+1))
+    # Add column neighbors
+    for c in range(9):
+        # Appending each cell by incrmenting the middle character of the cell name
+        neighbors.append('C' + str(c + 1) + cell[2])
+    # Add sub-box neighbors
+    # Nested lists of the cells in each sub-box of a classic 9x9 Sudoku board
+    subboxes = [
+                ['C11', 'C12', 'C13', 'C21', 'C22', 'C23', 'C31', 'C32', 'C33'],
+                ['C14', 'C15', 'C16', 'C24', 'C25', 'C26', 'C34', 'C35', 'C36'],
+                ['C17', 'C18', 'C19', 'C27', 'C28', 'C29', 'C37', 'C38', 'C39'],
+                ['C41', 'C42', 'C43', 'C51', 'C52', 'C53', 'C61', 'C62', 'C63'],
+                ['C44', 'C45', 'C46', 'C54', 'C55', 'C56', 'C64', 'C65', 'C66'],
+                ['C47', 'C48', 'C49', 'C57', 'C58', 'C59', 'C67', 'C68', 'C69'],
+                ['C71', 'C72', 'C73', 'C81', 'C82', 'C83', 'C91', 'C92', 'C93'],
+                ['C74', 'C75', 'C76', 'C84', 'C85', 'C86', 'C94', 'C95', 'C96'],
+                ['C77', 'C78', 'C79', 'C87', 'C88', 'C89', 'C97', 'C98', 'C99']
+                ]
+    # Iterating through sub-box of cells to check which one the input cell is in
+    for box in subboxes:
+        if cell in box:
+            # Appending each cell name in the list to the neighbors list
+            for square in box:
+                neighbors.append(square)
+    # Removing all the instances of the input cell itself being its own neighbor
+    neighbors = list(filter(lambda x: x != cell, neighbors))
+    return neighbors
+    
 
 def ac3(input_csp):
     '''
@@ -129,8 +183,8 @@ def ac3(input_csp):
             for neighbor in neighbors:
                 queue.append([neighbor, cell_pair[0]])
     return True
-                    
-                    
+        
+    
 def csp_to_sudoku_board(csp):
     board = [[csp['C' + str(i) + str(j)] for j in range(1, 10)] for i in range(1, 10)]
     return board
@@ -140,8 +194,12 @@ def csp_to_sudoku_board(csp):
 
 @app.route('/')
 def home():
-    test = revise(constraint4x4, 'C12', 'C11')
-    return (f"Hello, World!, {test}")
+    currCSP = puzzle1
+    #test = revise(currCSP, 'C11', 'C12')
+    possible = ac3(currCSP)
+    neighbors = get_neighbors('C11', currCSP)
+    return (f"Hello, World! Is it possible? {possible} \n {currCSP[0]}")
+    #return render_template('index.html', board=board)
 
 if __name__ == '__main__':
     app.run(debug=True)
