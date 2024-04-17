@@ -76,20 +76,27 @@ def revise(input_csp, cell1, cell2):
         bool: True if the domain of cell1 was changed, False otherwise.
     '''
     # Boolean value to return, indicates if changes were made
-    changeMade = False
-    for value1 in input_csp[cell1]:
+    revised = False
+    print(cell1)
+    for value1 in input_csp[0].get(cell1, []):
         found_valid = False
-        # Checking the values in cell 2's domain
-        for value2 in input_csp[cell2]:
-            if [value1, value2] in input_csp.get((cell1, cell2), []) or [value2, value1] in input_csp.get((cell1, cell2), []):
-                # If values are in constraints, proving validity, 
+        # Checking the values in cell 2's domain 
+        for value2 in input_csp[0].get(cell2, []):
+            #### DEBUGGING print(f"Checking if {value1} in {cell1}'s domain is valid with {value2} in {cell2}'s domain")
+            # Checking for validity of values in constraints, need to check both orders
+            if [value1, value2] in input_csp[1].get((cell1, cell2), []) or [value2, value1] in input_csp[1].get((cell2, cell1), []):
+            # If values are in constraints, proving validity, 
                 # then we have found a valid value pair between cell1 and cell2
                 found_valid = True
-            if found_valid is False:
-                # If no valid value pair, then cell1's value is removed from its domain
-                input_csp[cell1].remove(value1)
-                changeMade = True
-    return changeMade
+                #### DEBUGGING print("VERIFIED")
+                break
+            #### DEBUGGING print("NOT VALID")
+        if found_valid is False:
+            # If no satisfactory value pair, then value1 (from cell1 domain) is removed from cell1's domain
+            #### DEBUGGING print("DOMAIN REMOVAL")
+            input_csp[0][cell1].remove(value1)
+            revised = True
+    return revised
     
 
 ## Part 3 - Implementing AC-3 function, modifies a CSP removing all inconsistent domain values
