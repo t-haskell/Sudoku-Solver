@@ -112,16 +112,22 @@ def ac3(input_csp):
     Returns:
         bool: True if all variables still have at least one value in their domains, False otherwise
     '''
-    # 4x Nested loop allows for every pair of cells to be considered, using the revise function to fix CSP
-    for row1 in range(0, 10):
-        for col1 in range(0, 10):
-            for row2 in range(row1+1, 10):
-                for col2 in range(0, 10):
-                    # This nested loop will allow for every pair of cells on 9x9 board
-                    revise(input_csp, 'C' + str(row1) + str(col1), 'C' + str(row2) + str(col2))
-                    
-    if [] in input_csp[:9]:
-        return False
+    # Pushing all cell pairs onto the queue, each as a list
+    queue = [[cell1, cell2] for (cell1, cell2) in input_csp[1].keys()]
+
+    while queue:
+        # Popping the top cell pair off queue
+        cell_pair = queue.pop(0)
+        if revise(input_csp, cell_pair[0], cell_pair[1]):
+            # Only have to check first cell variable since its domain has been changed (revise resulted in true)
+            if input_csp[0][cell_pair[0]] == []:
+                return False
+            # Creating list of neighboring arc with the changed cell
+            # (In Sudoku, this is all cells in its row, column, and sub-box)
+            neighbors = get_neighbors(cell_pair[0], input_csp)
+            #### DEBUGGING print(neighbors) 
+            for neighbor in neighbors:
+                queue.append([neighbor, cell_pair[0]])
     return True
                     
                     
