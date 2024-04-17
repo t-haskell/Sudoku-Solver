@@ -182,6 +182,38 @@ def ac3(input_csp):
             for neighbor in neighbors:
                 queue.append([neighbor, cell_pair[0]])
     return True
+
+
+
+## PART 4 -> MINIMUM-REMAINING-VALUE FUNCTION
+
+def minimum_remainng_values(csp, var_assignments):
+    '''
+    Helps find the next best move, finding the variable with the fewest remaining possibilities
+    that isn't already assigned a final value (Assigned variables are in var_assignments)
+    
+    Args:
+        csp (dict): The CSP with variables/domains and constraints
+        var_assignments (dict): Keys are variables and values are the assigned values
+    
+    Returns:
+        min_cell (str): Name of the variable with the fewest remaining possibilities
+    '''
+    min_cell = ''
+    # Iterate over all the variables/domains in the csp
+    for cell in csp[0]:
+        if cell not in var_assignments:
+            # Count remaining possibilities
+            num_poss = len(csp[0][cell])
+            # If domain is less than current min OR min name is an empty string
+            if num_poss < len(csp[0][min_cell]) or min_cell == '':
+                # Then set the new minimum cell 
+                min_cell = cell
+    return min_cell
+        
+     
+
+
         
     
     
