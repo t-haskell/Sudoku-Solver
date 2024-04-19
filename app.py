@@ -1,3 +1,5 @@
+import copy
+import random
 from flask import Flask, render_template
 import csp9x9
 
@@ -19,7 +21,7 @@ constraint4x4 = [
     'C31': [1, 2, 3, 4], 'C32': [1, 2, 3, 4], 'C33': [3], 'C34': [1, 2, 3, 4],
     'C41': [1, 2, 3, 4], 'C42': [1, 2, 3, 4], 'C43': [1, 2, 3, 4], 'C44': [4]},
     
-    # Constraints
+# Constraints
     # Row 1
     {('C11', 'C12'): [[1, 2], [1, 3], [1, 4], [2, 1], [2, 3], [2, 4], [3, 1], [3, 2], [3, 4]],
     ('C11', 'C13'): [[1, 2], [1, 3], [1, 4], [2, 1], [2, 3], [2, 4], [3, 1], [3, 2], [3, 4]],
@@ -114,17 +116,17 @@ constraint4x4 = [
 ## PART 2 -> Creating the REVISE function ---------------------------------------------------------
 
 def revise(input_csp, cell1, cell2):
-    '''
+    """
     Revises the domain of a given cell in a constraint satisfaction problem (CSP) based on the constraints with another cell.
 
     Args:
-        input_csp (dict): The CSP to be revised, where the keys are cell names and the values are lists of possible values for that cell.
+        input_csp (list): The CSP to be revised, index 0 being the dictionary of variables/domains and index 1 being the constraints.
         cell1 (str): The name of the cell whose domain should be revised.
         cell2 (str): The name of the cell whose constraints should be used to revise the domain of cell1.
 
     Returns:
         bool: True if the domain of cell1 was changed, False otherwise.
-    '''
+    """
     # Boolean value to return, indicates if changes were made
     revised = False
     for value1 in input_csp[0].get(cell1, []):
@@ -152,17 +154,16 @@ def revise(input_csp, cell1, cell2):
 ## Part 3 -> Implementing AC-3 function, with its helper function for finding 'neighbors'
 
 def get_neighbors(cell):
-    '''
+    """
     Helper function for the AC-3 algorithm, finds a list of the cells that are in the same row,
     column, and sub-box as the given cell.
-    
+
     Args:
         cell (str): The name of the cell
-        csp (list): Contains two dictionaries, one for the variables/domains and the other for contraints
-    
+
     Returns:
         neighbors (list): List of names of cells that are 'neighbors' of the given cell
-    '''
+    """
     neighbors = []
     # Not going to worry about adding the cell itself, will remove at the end
     # Add row neighbors
@@ -198,16 +199,18 @@ def get_neighbors(cell):
     
 
 def ac3(input_csp):
-    '''
+    """
     Utilizing the revise function to modify a CSP object and ensures all variables are consistent
     with the constraints given.
     
     Args:
-        input_csp (dict): The CSP to be revised, where the keys are cell names and the values are lists of possible values for that cell.
+        input_csp (list): The CSP to be revised, where the first element is a dict of cells mapping
+            to lists of possible values, and the second element is a dict of constraints represented as 
+            tuples mapping to lists of valid value pairs.
     
     Returns:
         bool: True if all variables still have at least one value in their domains, False otherwise
-    '''
+    """
     # Pushing all cell pairs onto the queue, each as a list
     queue = [[cell1, cell2] for (cell1, cell2) in input_csp[1].keys()]
 
@@ -220,7 +223,7 @@ def ac3(input_csp):
                 return False
             # Creating list of neighboring arc with the changed cell
             # (In Sudoku, this is all cells in its row, column, and sub-box)
-            neighbors = get_neighbors(cell_pair[0], input_csp)
+            neighbors = get_neighbors(cell_pair[0])
             #### DEBUGGING print(neighbors) 
             for neighbor in neighbors:
                 queue.append([neighbor, cell_pair[0]])
@@ -231,17 +234,17 @@ def ac3(input_csp):
 ## PART 4 -> MINIMUM-REMAINING-VALUE FUNCTION
 
 def minimum_remainng_values(csp, var_assignments):
-    '''
+    """
     Helps find the next best move, finding the variable with the fewest remaining possibilities
     that isn't already assigned a final value (Assigned variables are in var_assignments)
     
     Args:
-        csp (dict): The CSP with variables/domains and constraints
+        csp (list): The CSP with variables/domains and constraints
         var_assignments (dict): Keys are variables and values are the assigned values
     
     Returns:
         min_cell (str): Name of the variable with the fewest remaining possibilities
-    '''
+    """
     min_cell = ''
     # Iterate over all the variables/domains in the csp
     for cell in csp[0]:
@@ -249,25 +252,127 @@ def minimum_remainng_values(csp, var_assignments):
             # Count remaining possibilities
             num_poss = len(csp[0][cell])
             # If domain is less than current min OR min name is an empty string
-            if num_poss < len(csp[0][min_cell]) or min_cell == '':
+            if min_cell == '' or num_poss < len(csp[0][min_cell]):
                 # Then set the new minimum cell 
                 min_cell = cell
+                
     return min_cell
-        
-     
 
 
+## PART 5 -> BACKTRACKING SEARCH
+
+def order_domain_values(csp, cell):
+    """
+    Randomly shuffles a cell's domain values to prevent getting stuck in local minima
+
+    Args:
+        csp (list): _description_
+        cell (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    domain = csp[0][cell]
+    
+    # Random order to shuffle domain values and prevent getting stuck
+    random.shuffle(domain)
+    
+    # Returns the list
+    return domain
+    
+def is_consistent(cell, value, assignment):
+    # Check if value is consistent with assignment so far
+    relevant = get_neighbors(cell)
         
+    for square in relevant:
+        # If the neighbor has been assigned AND if the potential value is the same as an already assigned value
+        if square in assignment and value == assignment[square]:
+            # Then this potential value is inconsistent with the current state
+            return False
+            
+    return True
     
+
+def backtrack_search(csp):
+    """
+    Performs a backtracking search to solve the given constraint satisfaction problem (CSP). Contains a function
+    definition for backtrack(csp, assignment) that recursively tries assignments for cells
+
+    Args:
+        csp (dict): The CSP with variables/domains and constraints.
+
+    Returns:
+        tuple: A tuple containing the following:
+            - assignment (dict): The final variable assignments that solve the CSP.
+            - ordered_assignments (list): The order in which the variables were assigned.
+            - remaining_domains (list): The remaining domains of unassigned variables after each assignment.
+    """
     
+    ordered_assignments = []    # Stores order of assignments
+    remaining_domains = []      # Stores remaining domains after each assignment
+    new_assignment = {}     # Initializing an empty assignment dictionary
+    
+    # Ensuring the CSP is arc-consistent before starting
+    ac3(csp)
+    
+    def backtrack(csp, assignment):
+        """
+        Recursive backtracking function that tries assignments for the next cell.
+
+        Args:
+            csp (list): The current state's CSP with variables/domains and constraints.
+            assignment (dict): This state's current assignment of cells to values
+
+        Returns:
+            None: If no solution is found for the current test cell, None is returned
+        """
+        # If every cell is assigned, return variable assignments
+        if len(assignment) == len(csp[0]): 
+            return assignment, ordered_assignments, remaining_domains
+        
+        # Get the next cell based on minimum remaining values function
+        test_cell = minimum_remainng_values(csp, assignment)
+        
+        # Store the remaining domains of unassigned variables before making the assignment
+        remaining_domains.append({cell: csp[0][cell] for cell in csp[0] if cell not in assignment})
+        
+        # Iterating through domain values for test cell, shuffled for randomness
+        for value in order_domain_values(csp, test_cell):
+            # If value is consistent with the assignment so far
+            if is_consistent(test_cell, value, assignment):
+                assignment[test_cell] = value   # Add cell/value pair to assignment
+                ordered_assignments.append(test_cell)
+                
+                # Making a copy of current csp in case we backtrack
+                cspCopy = copy.deepcopy(csp)
+                infer = ac3(cspCopy)
+                
+                # If inference succeeded
+                if infer:
+                    # (**) Dont have to add inferences back to original CSP, used a copy cspCopy
+                    # Recursively calling backtrack with updated assignment
+                    result = backtrack(cspCopy, assignment)
+                    if result is not None:
+                        return result
+                    # (**) Dont have to remove inferences from CSP, used a copy as input to recursion
+                del assignment[test_cell]   # Removing the assignment
+                ordered_assignments.pop()   # Removing from ordered list
+                remaining_domains.pop()     # Removing the domain of the unassigned variable
+                
+        return None # No solution found
+    
+    # Starting backtrack search
+    return backtrack(csp, new_assignment)            
+
 
 @app.route('/')
 def home():
     currCSP = puzzle1
     #test = revise(currCSP, 'C11', 'C12')
     possible = ac3(currCSP)
-    neighbors = get_neighbors('C11', currCSP)
-    return (f"Hello, World! Is it possible? {possible} ")
+    neighbors = get_neighbors('C11')
+    assignment_test, ordered_test, remaining_test = backtrack_search(currCSP)
+    return (f"Hello, World! Is it possible? {possible}\n Here are the neighbors of C11: {neighbors}\n\n\nBacktracking result: {assignment_test}")
     #return render_template('index.html', board=board)
 
 if __name__ == '__main__':
