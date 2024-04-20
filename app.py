@@ -310,7 +310,13 @@ def backtrack_search(csp):
     
     ordered_assignments = []    # Stores order of assignments
     remaining_domains = []      # Stores remaining domains after each assignment
-    new_assignment = {}     # Initializing an empty assignment dictionary
+    
+    # Setting assignments to the cells with a single valued domain
+    new_assignment = {}
+    for cell in csp[0]:
+        if len(csp[0][cell]) == 1:
+            ordered_assignments.append(cell)
+            new_assignment[cell] = csp[0][cell][0]
     
     # Ensuring the CSP is arc-consistent before starting
     ac3(csp)
