@@ -491,7 +491,7 @@ def home():
         # Add the HTML code to represent this state of the board to list of board states to solution
         all_boards.append(display_csp(starting_domains))
         
-    return (f"\n\nBacktracking result: {''.join(all_boards)}")
+    return (f"\n\nScroll down to see step by step solution: {''.join(all_boards)}")
 
 if __name__ == '__main__':
     app.run(debug=True)
