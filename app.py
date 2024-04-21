@@ -424,16 +424,71 @@ def display_csp(current_domains):
     html += "</table>"
     return html
     
-        
+    
+def parse_input_puzzle(puzzle):
+    """
+    Creates a new empty CSP (Constraint Satisfaction Problem) by copying the blank CSP, and then
+    iterates through the provided puzzle, replacing the domains of blank CSP with the numeric values found
+    
+    Args:
+        puzzle (list): A list of strings representing the puzzle to be solved, each list being a row
+    
+    Returns:
+        tuple: A new CSP with the puzzle values added to the domains.
+    """
+    # Creates a new empty CSP
+    newCSP = [copy.deepcopy(blank_csp[0]), copy.deepcopy(blank_csp[1])]
+    
+    # Turning input string into a nested list
+    comma_seperated = puzzle.replace("%20", ",")
+    comma_seperated = comma_seperated.replace(" ", ",")
+    comma_seperated = comma_seperated.replace("(", "[")
+    comma_seperated = comma_seperated.replace(")", "]")
+    comma_seperated = comma_seperated.replace("nil", "0")
+    print(comma_seperated)
+    nested_list = ast.literal_eval(comma_seperated)
+    
+    # Iterate on each row
+    for j, row in enumerate(nested_list):
+        # Iterate on each character in the row
+        for i, cell in enumerate(row):
+            # If value is not a number, then dont change that cell's domain
+            if cell != 0:
+                cellName = "C" + str(j+1) + str(i+1)
+                # Add the cell to the CSP with the found value
+                newCSP[0][cellName] = [int(cell)]
+    print(newCSP[0])
+                
+    return newCSP
+
+
 @app.route('/')
 def home():
-    currCSP = puzzle1
-    #test = revise(currCSP, 'C11', 'C12')
-    possible = ac3(currCSP)
-    neighbors = get_neighbors('C11')
+    # Get puzzle from the query parameter
+    puzzle = request.args.get('puzzle')
+    
+    # Check if a puzzle was provided
+    if puzzle is None:
+        # If not, use puzzle 1 as default
+        currCSP = puzzle1
+    else:
+        # Parsing the provided puzzle
+        currCSP = parse_input_puzzle(puzzle)
+        
+    starting_domains = copy.copy(currCSP[0])
     assignment_test, ordered_test, remaining_test = backtrack_search(currCSP)
-    return (f"Hello, World! Is it possible? {possible}\n Here are the neighbors of C11: {neighbors}\n\n\nBacktracking result: {assignment_test}")
-    #return render_template('index.html', board=board)
+    
+    # Creating list of HTML code for each board
+    all_boards = []
+    step_counter = 0
+    for state in ordered_test:
+        step_counter += 1
+        # Updating domain of cell thats next to be assigned, maintaining list format but with assignment as the only value
+        starting_domains[state] = [assignment_test[state]]
+        # Add the HTML code to represent this state of the board to list of board states to solution
+        all_boards.append(display_csp(starting_domains))
+        
+    return (f"\n\nBacktracking result: {''.join(all_boards)}")
 
 if __name__ == '__main__':
     app.run(debug=True)
