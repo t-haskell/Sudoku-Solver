@@ -117,7 +117,9 @@ constraint4x4 = [
 
 def revise(input_csp, cell1, cell2):
     """
-    Revises the domain of a given cell in a constraint satisfaction problem (CSP) based on the constraints with another cell.
+    Revises the domain of a given cell in a constraint satisfaction problem (CSP) based on the constraints
+    with another cell. A value is removed from 'cell1' domain if no values in 'cell2' domain can
+    satisfy the list of valid arcs. 
 
     Args:
         input_csp (list): The CSP to be revised, index 0 being the dictionary of variables/domains and index 1 being the constraints.
@@ -224,7 +226,6 @@ def ac3(input_csp):
             # Creating list of neighboring arc with the changed cell
             # (In Sudoku, this is all cells in its row, column, and sub-box)
             neighbors = get_neighbors(cell_pair[0])
-            #### DEBUGGING print(neighbors) 
             for neighbor in neighbors:
                 queue.append([neighbor, cell_pair[0]])
     return True
@@ -266,21 +267,31 @@ def order_domain_values(csp, cell):
     Randomly shuffles a cell's domain values to prevent getting stuck in local minima
 
     Args:
-        csp (list): _description_
-        cell (_type_): _description_
+        csp (list): The CSP object with the variables/domains and constraints, needed to get domain
+        of cell in argument
+        cell (str): String value of the cell who's domain is being shuffled
 
     Returns:
-        _type_: _description_
+        list: The newly shuffled domain list, showing the valid values this cell can have
     """
     domain = csp[0][cell]
-    
     # Random order to shuffle domain values and prevent getting stuck
     random.shuffle(domain)
-    
-    # Returns the list
     return domain
     
+
 def is_consistent(cell, value, assignment):
+    """
+    Checks if a given value for a cell is consistent with the current assignment.
+
+    Args:
+        cell (str): The cell being assigned.
+        value (str): The value being assigned to the cell.
+        assignment (dict): The current assignment of values to cells.
+
+    Returns:
+        bool: True if the value is consistent with the current assignment, False otherwise.
+    """
     # Check if value is consistent with assignment so far
     relevant = get_neighbors(cell)
         
@@ -295,8 +306,8 @@ def is_consistent(cell, value, assignment):
 
 def backtrack_search(csp):
     """
-    Performs a backtracking search to solve the given constraint satisfaction problem (CSP). Contains a function
-    definition for backtrack(csp, assignment) that recursively tries assignments for cells
+    Performs a backtracking search to solve the given constraint satisfaction problem (CSP). Contains
+    a function definition for backtrack(csp, assignment) that recursively tries assignments for cells
 
     Args:
         csp (dict): The CSP with variables/domains and constraints.
@@ -305,7 +316,8 @@ def backtrack_search(csp):
         tuple: A tuple containing the following:
             - assignment (dict): The final variable assignments that solve the CSP.
             - ordered_assignments (list): The order in which the variables were assigned.
-            - remaining_domains (list): The remaining domains of unassigned variables after each assignment.
+            - remaining_domains (list): The remaining domains of unassigned variables after
+            each assignment.
     """
     
     ordered_assignments = []    # Stores order of assignments
