@@ -321,6 +321,7 @@ def backtrack_search(csp):
     # Ensuring the CSP is arc-consistent before starting
     ac3(csp)
     
+    # Function definition for recursive portion of backtrack search 
     def backtrack(csp, assignment):
         """
         Recursive backtracking function that tries assignments for the next cell.
@@ -347,7 +348,7 @@ def backtrack_search(csp):
             # If value is consistent with the assignment so far
             if is_consistent(test_cell, value, assignment):
                 assignment[test_cell] = value   # Add cell/value pair to assignment
-                ordered_assignments.append(test_cell)
+                ordered_assignments.append(test_cell)   # Adding to ordered list                
                 
                 # Making a copy of current csp in case we backtrack
                 cspCopy = copy.deepcopy(csp)
@@ -357,20 +358,54 @@ def backtrack_search(csp):
                 if infer:
                     # (**) Dont have to add inferences back to original CSP, used a copy cspCopy
                     # Recursively calling backtrack with updated assignment
-                    result = backtrack(cspCopy, assignment)
+                    result = backtrack(cspCopy, assignment)                    
                     if result is not None:
                         return result
                     # (**) Dont have to remove inferences from CSP, used a copy as input to recursion
+                    
                 del assignment[test_cell]   # Removing the assignment
                 ordered_assignments.pop()   # Removing from ordered list
-                remaining_domains.pop()     # Removing the domain of the unassigned variable
+                remaining_domains.pop()     # Removing the domain of the unassigned variable                
                 
         return None # No solution found
     
     # Starting backtrack search
-    return backtrack(csp, new_assignment)            
+    return backtrack(csp, new_assignment)     
 
 
+
+## PART 6 - Displaying the backtrack search step by step
+
+def display_csp(current_domains):
+    """
+    Generates an HTML table representation of the current state of a Constraint Satisfaction Problem
+    (CSP). Each cell displaying either the assigned value (if the domain has only one element) or a
+    space (if the domain has multiple elements).
+
+    Args:
+        current_domains (dict): A dictionary mapping each cell in the CSP to its current domain (a list of possible values).
+
+    Returns:
+        str: An HTML string representing the current state of the CSP.
+    """
+    html = "<h2>Constraint Satisfaction Problem</h2>"
+    html += "<table border='1'>"
+    # Iterating through all cell values in 9x9 board
+    for row in range(1, 10):
+        # Starting a row
+        html += "<tr>"
+        for col in range(1, 10):
+            cell = "C" + str(row) + str(col)
+            # If the cell is in unassigned, then make the value None
+            value = current_domains[cell] if len(current_domains[cell]) == 1 else " "
+            # Board Square value thats shown in the board
+            html += f"<td>{value}</td>"
+        # Ending the row
+        html += "</tr>"
+    html += "</table>"
+    return html
+    
+        
 @app.route('/')
 def home():
     currCSP = puzzle1
