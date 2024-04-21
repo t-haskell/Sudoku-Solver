@@ -1,7 +1,9 @@
+import ast
 import copy
 import random
-from flask import Flask, render_template
+from flask import Flask, request
 import csp9x9
+
 
 # CSP for a blank 9x9 Sudoku board
 blank_csp = [csp9x9.variables9x9, csp9x9.constraint9x9]
@@ -135,18 +137,14 @@ def revise(input_csp, cell1, cell2):
         found_valid = False
         # Checking the values in cell 2's domain 
         for value2 in input_csp[0].get(cell2, []):
-            #### DEBUGGING print(f"Checking if {value1} in {cell1}'s domain is valid with {value2} in {cell2}'s domain")
             # Checking for validity of values in constraints, need to check both orders
             if [value1, value2] in input_csp[1].get((cell1, cell2), []) or [value2, value1] in input_csp[1].get((cell2, cell1), []):
             # If values are in constraints, proving validity, 
                 # then we have found a valid value pair between cell1 and cell2
                 found_valid = True
-                #### DEBUGGING print("VERIFIED")
                 break
-            #### DEBUGGING print("NOT VALID")
         if found_valid is False:
             # If no satisfactory value pair, then value1 (from cell1 domain) is removed from cell1's domain
-            #### DEBUGGING print("DOMAIN REMOVAL")
             input_csp[0][cell1].remove(value1)
             revised = True
     return revised
@@ -441,11 +439,12 @@ def parse_input_puzzle(puzzle):
     
     # Turning input string into a nested list
     comma_seperated = puzzle.replace("%20", ",")
+    # Extra step needed due to URL encoding of '%20'
     comma_seperated = comma_seperated.replace(" ", ",")
     comma_seperated = comma_seperated.replace("(", "[")
     comma_seperated = comma_seperated.replace(")", "]")
     comma_seperated = comma_seperated.replace("nil", "0")
-    print(comma_seperated)
+    # After making replacements to string input, create nested list structue w eval()
     nested_list = ast.literal_eval(comma_seperated)
     
     # Iterate on each row
@@ -464,6 +463,10 @@ def parse_input_puzzle(puzzle):
 
 @app.route('/')
 def home():
+    '''
+    PUZZLE INPUT AS QUERY PARAMETER IN URL - Programmed to accept the same format as
+    the example puzzles 
+    '''
     # Get puzzle from the query parameter
     puzzle = request.args.get('puzzle')
     
