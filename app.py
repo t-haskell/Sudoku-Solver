@@ -400,8 +400,9 @@ def display_csp(current_domains):
     Returns:
         str: An HTML string representing the current state of the CSP.
     """
-    html = "<h2>Constraint Satisfaction Problem</h2>"
-    html += "<table border='1'>"
+    html = "<h2>Sudoku Puzzle</h2>"
+    html += "<head> <title>Sudoku Puzzle</title> <link rel='stylesheet' type='text/css' href='static/styles.css'></head>"
+    html += "<table class='sudoku-table'>"
     # Iterating through all cell values in 9x9 board
     for row in range(1, 10):
         # Starting a row
@@ -409,11 +410,17 @@ def display_csp(current_domains):
         for col in range(1, 10):
             cell = "C" + str(row) + str(col)
             # If the cell is in unassigned, then make the value None
-            value = current_domains[cell] if len(current_domains[cell]) == 1 else " "
+            value = current_domains[cell][0] if len(current_domains[cell]) == 1 else " "
             # Board Square value thats shown in the board
-            html += f"<td>{value}</td>"
+            html += f"<td class='sudoku-cell'>{value}</td>"
+            # Adding thicker lines for sub-boxes
+            if col in (3, 6):
+                html += "<td class='sub-box'></td>"
         # Ending the row
         html += "</tr>"
+        # Adding thicker lines for sub-boxes
+        if row in (3, 6):
+            html += "<tr class='sub-box'></tr>"
     html += "</table>"
     return html
     
