@@ -455,9 +455,7 @@ def parse_input_puzzle(puzzle):
             if cell != 0:
                 cellName = "C" + str(j+1) + str(i+1)
                 # Add the cell to the CSP with the found value
-                newCSP[0][cellName] = [int(cell)]
-    print(newCSP[0])
-                
+                newCSP[0][cellName] = [int(cell)]                
     return newCSP
 
 
