@@ -488,7 +488,7 @@ def home():
         starting_domains[state] = [assignment_test[state]]
         # Add the HTML code to represent this state of the board to list of board states to solution
         all_boards.append(display_csp(starting_domains))
-        
+    all_boards.reverse()        
     return (f"\n\nScroll down to see step by step solution: {''.join(all_boards)}")
 
 if __name__ == '__main__':
